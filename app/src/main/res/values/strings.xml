@@ -45,6 +45,11 @@
     <string name="insecure_connect">Connect a device - Insecure</string>
     <string name="discoverable">Make discoverable</string>
     <string name="sample_show_log">Show Log</string>
+    <string name="app_version">0.0.1</string>
+    <string name="settings">Settings</string>
+    <string name="logger">Logger</string>
+    <string name="camera">Camera</string>
+    <string name="joystick">Joystick</string>
 
 
 </resources>

@@ -50,7 +50,7 @@ public class DeviceListActivity extends Activity {
      * Tag for Log
      */
     private static final String TAG = "DeviceListActivity";
-
+    private static final boolean TRACE_ENABLED = true;
     /**
      * Return Intent extra
      */

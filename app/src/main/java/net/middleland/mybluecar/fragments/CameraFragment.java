@@ -31,6 +31,7 @@ public class CameraFragment extends Fragment {
     public static final int MEDIA_TYPE_VIDEO = 2;
     // Debugging
     private static final String TAG = "CameraFragment";
+    private static final boolean TRACE_ENABLED = true;
     // private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 1;
     private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200;
     public static TextView output;
@@ -62,7 +63,7 @@ public class CameraFragment extends Fragment {
         // Create the storage directory if it does not exist
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
-                Log.d("MyCameraApp", "failed to create directory");
+                Log.e(TAG, "failed to create directory");
                 return null;
             }
         }
@@ -163,7 +164,8 @@ public class CameraFragment extends Fragment {
                         String absolutePath = tmpFile.getAbsolutePath();
 
                         output.setText("Video File : " + absolutePath);
-                        Log.d(TAG, "Video saved in: " + absolutePath);
+                        if (TRACE_ENABLED)
+                            Log.d(TAG, "Video saved in: " + absolutePath);
 
                         Toast.makeText(getActivity(), "Video saved to:" +
                                 absolutePath, Toast.LENGTH_LONG).show();
@@ -175,7 +177,8 @@ public class CameraFragment extends Fragment {
             } else if (resultCode == Activity.RESULT_CANCELED) {
 
                 output.setText("User cancelled the video capture.");
-                Log.d(TAG, "User cancelled the video capture.");
+                if (TRACE_ENABLED)
+                  Log.d(TAG, "User cancelled the video capture.");
 
                 // User cancelled the video capture
                 Toast.makeText(getActivity(),
@@ -185,7 +188,8 @@ public class CameraFragment extends Fragment {
             } else {
 
                 output.setText("Video capture failed.");
-                Log.d(TAG, "Video capture failed.");
+                if (TRACE_ENABLED)
+                    Log.d(TAG, "Video capture failed.");
 
                 // Video capture failed, advise user
                 Toast.makeText(getActivity(), "Video capture failed.",

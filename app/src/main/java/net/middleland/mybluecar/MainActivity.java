@@ -31,14 +31,22 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
+    private static final boolean TRACE_ENABLED = true;
+    private LogFragment logFragment=null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        getSupportActionBar().setHomeAsUpIndicator(R.mipmap.ic_launcher);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +69,8 @@ public class MainActivity extends AppCompatActivity
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.content_main, new JoystickFragment()).commit();
         }
+        // Initialize logging
+        initializeLogging();
 
 
     }
@@ -90,35 +100,45 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
         // Handle navigation view item clicks here.
+        if (TRACE_ENABLED)
+          Log.d(TAG,"onNavigation Item selected="+item.toString());
+
+
         switch (item.getItemId()){
 
             case R.id.nav_camera:{
               // Handle the camera action
-              handleCamera();
+               handleCamera();
+                break;
             }
 
             case R.id.nav_joystick: {
                 // Handle the joystick action
                 handleJoystick();
+                break;
 
            }
            case R.id.nav_settings: {
                 // Handle the settings options
                 handleSettings();
+               break;
            }
 
             case R.id.nav_logger:{
                 // Handler logger option
                 handleLog();
+                break;
             }
+            default:
+                return super.onOptionsItemSelected(item);
 
-        } 
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        }
         return true;
+
     }
 
 
@@ -142,8 +162,8 @@ public class MainActivity extends AppCompatActivity
     private void handleCamera() {
         // Create new fragment and transaction
         Fragment newFragment = new CameraFragment();
-
         replaceFragment(newFragment);
+
     }
 
 
@@ -163,9 +183,9 @@ public class MainActivity extends AppCompatActivity
      */
     private void  handleLog(){
         // Create new fragment and transaction
-        Fragment newFragment = new LogFragment();
+        //Fragment newFragment = new LogFragment();
 
-        replaceFragment(newFragment);
+        replaceFragment(logFragment);
 
     }
 
@@ -184,12 +204,16 @@ public class MainActivity extends AppCompatActivity
         // Commit the transaction
         transaction.commit();
     }
-// Loggin stuff
+
 
     /** Create a chain of targets that will receive log data */
-    @Override
-    public void initializeLogging() {
-        // Wraps Android's native log framework.
+
+    private void initializeLogging() {
+
+        if (TRACE_ENABLED)
+            Log.d(TAG,"initializeLogging");
+
+            // Wraps Android's native log framework.
         LogWrapper logWrapper = new LogWrapper();
         // Using Log, front-end to the logging chain, emulates android.util.log method signatures.
         Log.setLogNode(logWrapper);
@@ -197,12 +221,10 @@ public class MainActivity extends AppCompatActivity
         // Filter strips out everything except the message text.
         MessageOnlyLogFilter msgFilter = new MessageOnlyLogFilter();
         logWrapper.setNext(msgFilter);
+        logFragment = new LogFragment();
 
-        // On screen logging via a fragment with a TextView.
-        LogFragment logFragment = (LogFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.log_fragment);
+
         msgFilter.setNext(logFragment.getLogView());
-
         Log.i(TAG, "Ready");
     }
 

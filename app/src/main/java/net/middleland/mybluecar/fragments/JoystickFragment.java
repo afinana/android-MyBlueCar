@@ -22,15 +22,22 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.middleland.mybluecar.MyApplication;
 import net.middleland.mybluecar.R;
+import net.middleland.mybluecar.bluetooth.BluetoothChat;
 import net.middleland.mybluecar.bluetooth.BluetoothChatService;
 import net.middleland.mybluecar.bluetooth.Constants;
 import net.middleland.mybluecar.bluetooth.DeviceListActivity;
+
+import java.nio.charset.Charset;
 
 
 public class JoystickFragment extends Fragment {
 
     protected static final String TAG = "JoystickFragment";
+    private static final boolean TRACE_ENABLED = true;
+    private  BluetoothChat btChatParser=new BluetoothChat();
+
     private TextView angleTextView = null;
     private TextView powerTextView = null;
     private TextView directionTextView = null;
@@ -51,27 +58,34 @@ public class JoystickFragment extends Fragment {
      * Makes this device discoverable for 300 seconds (5 minutes).
      */
     // Intent request codes
+    private static final boolean BT_ENABLED = false;
     private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
 
     private BluetoothAdapter mBluetoothAdapter = null;
-    private BluetoothChatService mChatService;
+    private BluetoothChatService mChatService=null;
+    private MyApplication myApplication=null;
+
 
 
     @Override
     public void onStart() {
 
         super.onStart();
+        myApplication = (MyApplication) getActivity().getApplication();
+
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-            // Otherwise, setup the chat session
-        } else if (mChatService == null) {
-            setupChat();
+        if (BT_ENABLED) {
+            if (!mBluetoothAdapter.isEnabled()) {
+                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+                // Otherwise, setup the chat session
+            } else if (mChatService == null) {
+                setupChat();
+            }
         }
 
     }
@@ -87,29 +101,33 @@ public class JoystickFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Performing this check in onResume() covers the case in which BT was
-        // not enabled during onStart(), so we were paused to enable it...
-        // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mChatService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mChatService.getState() == BluetoothChatService.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mChatService.start();
+            // Performing this check in onResume() covers the case in which BT was
+            // not enabled during onStart(), so we were paused to enable it...
+            // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
+            if (mChatService != null) {
+                // Only if the state is STATE_NONE, do we know that we haven't started already
+                if (mChatService.getState() == BluetoothChatService.STATE_NONE) {
+                    // Start the Bluetooth chat services
+                    mChatService.start();
+                }
             }
-        }
+
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        // Get local Bluetooth adapter
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        // If the adapter is null, then Bluetooth is not supported
-        if (mBluetoothAdapter == null) {
-            FragmentActivity activity = getActivity();
-            Toast.makeText(activity, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-            activity.finish();
+        if (BT_ENABLED) {
+            // Get local Bluetooth adapter
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+            // If the adapter is null, then Bluetooth is not supported
+            if (mBluetoothAdapter == null) {
+                FragmentActivity activity = getActivity();
+                Toast.makeText(activity, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+                activity.finish();
+            }
         }
     }
 
@@ -130,15 +148,21 @@ public class JoystickFragment extends Fragment {
 
         // Movement event Listener
         joystickView.setOnJoystickMoveListener(new JoystickView.OnJoystickMoveListener() {
-            private String btCommand;
 
             @Override
             public void onValueChanged(int angle, int power, int direction) {
                 angleTextView.setText(" " + String.valueOf(angle) + "º");
                 powerTextView.setText(" " + String.valueOf(power) + "%");
-                btCommand = angle + ":" + power;
 
-                Log.d(TAG, "BT command:" + btCommand);
+                String btCommand = btChatParser.getBtCommand(angle,power,direction);
+                if (BT_ENABLED){
+                    mChatService.write(btCommand.getBytes(Charset.forName("ASCII")));
+                }else{
+                    Toast.makeText(getActivity(), "Bluetooth is not available", Toast.LENGTH_LONG).show();
+                }
+                if (TRACE_ENABLED)
+                 Log.d(TAG, "BT command:" + btCommand);
+
                 switch (direction) {
                     case JoystickView.FRONT:
                         directionTextView.setText(R.string.front);
@@ -209,8 +233,11 @@ public class JoystickFragment extends Fragment {
                 ensureDiscoverable();
                 return true;
             }
+            default:
+                if (super.onOptionsItemSelected(item)) return true;
+                else return false;
+
         }
-        return false;
     }
 
     /**
