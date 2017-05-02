@@ -6,7 +6,7 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+import net.middleland.mybluecar.logger.Log;
 
 
 import java.io.IOException;

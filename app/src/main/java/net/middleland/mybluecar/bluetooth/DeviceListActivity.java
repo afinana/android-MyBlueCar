@@ -24,7 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
+
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -35,6 +35,7 @@ import android.widget.TextView;
 
 
 import net.middleland.mybluecar.R;
+import net.middleland.mybluecar.logger.Log;
 
 import java.util.Set;
 

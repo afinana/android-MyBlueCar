@@ -7,7 +7,5 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="net.middleland.mybluecar.logger.LogFragment">
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="@string/app_version" />
 
 </RelativeLayout>

@@ -9,9 +9,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+
+import net.middleland.mybluecar.bluetooth.BtConstants;
+import net.middleland.mybluecar.joystick.JoystickView;
+import net.middleland.mybluecar.logger.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,7 +31,6 @@ import net.middleland.mybluecar.MyApplication;
 import net.middleland.mybluecar.R;
 import net.middleland.mybluecar.bluetooth.BluetoothChat;
 import net.middleland.mybluecar.bluetooth.BluetoothChatService;
-import net.middleland.mybluecar.bluetooth.Constants;
 import net.middleland.mybluecar.bluetooth.DeviceListActivity;
 
 import java.nio.charset.Charset;
@@ -36,6 +40,7 @@ public class JoystickFragment extends Fragment {
 
     protected static final String TAG = "JoystickFragment";
     private static final boolean TRACE_ENABLED = true;
+
     private  BluetoothChat btChatParser=new BluetoothChat();
 
     private TextView angleTextView = null;
@@ -44,6 +49,7 @@ public class JoystickFragment extends Fragment {
     private String mConnectedDeviceName = null;
     private StringBuffer mConversationArrayAdapter = new StringBuffer();
 
+    private static final int DEVICE_INFO_COMMAND =1 ;
     /**
      * Local Bluetooth adapter
      * <p>
@@ -142,6 +148,15 @@ public class JoystickFragment extends Fragment {
         powerTextView = (TextView) rootView.findViewById(R.id.powerTextView);
         directionTextView = (TextView) rootView.findViewById(R.id.directionTextView);
 
+
+        FloatingActionButton fab = (FloatingActionButton)rootView.findViewById(R.id.fab_info);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getBtDeviceData(DEVICE_INFO_COMMAND);
+
+            }
+        });
 
         JoystickView joystickView = (JoystickView) rootView.findViewById(R.id.joystickView);
 
@@ -276,7 +291,7 @@ public class JoystickFragment extends Fragment {
         public void handleMessage(Message msg) {
             FragmentActivity activity = getActivity();
             switch (msg.what) {
-                case Constants.MESSAGE_STATE_CHANGE:
+                case BtConstants.MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case BluetoothChatService.STATE_CONNECTED:
                             setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
@@ -291,29 +306,40 @@ public class JoystickFragment extends Fragment {
                             break;
                     }
                     break;
-                case Constants.MESSAGE_WRITE:
+                case BtConstants.MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
-                    mConversationArrayAdapter.append("Me:  " + writeMessage);
+
+                    if (TRACE_ENABLED)
+                      Log.d(TAG,"Message sended:" + writeMessage);
+
+                    Toast.makeText(activity, mConnectedDeviceName+":<--"+writeMessage, Toast.LENGTH_SHORT).show();
+
                     break;
-                case Constants.MESSAGE_READ:
+                case BtConstants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    mConversationArrayAdapter.append(mConnectedDeviceName + ":  " + readMessage);
+
+                    if (TRACE_ENABLED)
+                        Log.d(TAG,"Message received:"+readMessage);
+
+                    Snackbar.make(getView(), "Device Information from <"+mConnectedDeviceName+">:"+readMessage, Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
                     break;
-                case Constants.MESSAGE_DEVICE_NAME:
+                case BtConstants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
-                    mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
+                    mConnectedDeviceName = msg.getData().getString(BtConstants.DEVICE_NAME);
                     if (null != activity) {
                         Toast.makeText(activity, "Connected to "
                                 + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
                     }
                     break;
-                case Constants.MESSAGE_TOAST:
+                case BtConstants.MESSAGE_TOAST:
                     if (null != activity) {
-                        Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
+                        Toast.makeText(activity, msg.getData().getString(BtConstants.TOAST),
                                 Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -399,5 +425,19 @@ public class JoystickFragment extends Fragment {
         actionBar.setSubtitle(subTitle);
     }
 
+    /**
+     * getBt DeviceData
+     * @param opCommand
+     * @return
+     */
+    private void getBtDeviceData(int opCommand){
+
+        String btCommand = btChatParser.getBtCommand(opCommand);
+        if (BT_ENABLED){
+            mChatService.write(btCommand.getBytes(Charset.forName("ASCII")));
+        }else{
+            Toast.makeText(getActivity(), "Bluetooth is not available", Toast.LENGTH_LONG).show();
+        }
+    }
 
 }

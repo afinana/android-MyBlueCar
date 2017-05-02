@@ -1,7 +1,7 @@
 /**
  *
  */
-package net.middleland.mybluecar.fragments;
+package net.middleland.mybluecar.joystick;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -25,7 +25,7 @@ public class JoystickView extends View implements Runnable {
     public final static int BOTTOM_LEFT = 8;
     public final static int LEFT = 1;
     public final static int FRONT_LEFT = 2;
-    // Constants
+    // BtConstants
     private final double RAD = 57.2957795;
     // Variables
     private OnJoystickMoveListener onJoystickMoveListener; // Listener

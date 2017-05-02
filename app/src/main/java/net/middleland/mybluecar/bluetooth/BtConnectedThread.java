@@ -2,7 +2,7 @@ package net.middleland.mybluecar.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
-import android.util.Log;
+import net.middleland.mybluecar.logger.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +79,7 @@ public class BtConnectedThread extends Thread {
         try {
             mmOutStream.write(buffer);
 
+
             // Share the sent message back to the UI Activity
             mHandler.obtainMessage(BluetoothChat.MESSAGE_WRITE, -1, -1, buffer)
                     .sendToTarget();
@@ -86,6 +87,8 @@ public class BtConnectedThread extends Thread {
             Log.e(TAG, "Exception during write", e);
         }
     }
+
+
 
     public void cancel() {
         try {

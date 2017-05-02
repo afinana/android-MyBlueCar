@@ -47,6 +47,8 @@ import android.widget.ScrollView;
  * through the LogNode interface.
  */
 public class LogFragment extends Fragment {
+    protected static final String TAG = "LogFragment";
+    private static final boolean TRACE_ENABLED = true;
 
     private LogView mLogView;
     private ScrollView mScrollView;
@@ -76,7 +78,7 @@ public class LogFragment extends Fragment {
         mLogView.setCompoundDrawablePadding(paddingPixels);
 
         mLogView.setGravity(Gravity.BOTTOM);
-        mLogView.setTextAppearance(getActivity(), android.R.style.TextAppearance_Holo_Medium);
+        mLogView.setTextAppearance( android.R.style.TextAppearance_Holo_Medium);
 
         mScrollView.addView(mLogView);
         return mScrollView;
@@ -103,7 +105,21 @@ public class LogFragment extends Fragment {
         return result;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        initializeLogging();
+
+    }
+
     public LogView getLogView() {
         return mLogView;
+    }
+
+    /** Create a chain of targets that will receive log data */
+
+    private void initializeLogging() {
+
+        Log.i(TAG, "Ready");
     }
 }

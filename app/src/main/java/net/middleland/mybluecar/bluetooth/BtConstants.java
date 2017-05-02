@@ -19,7 +19,7 @@ package net.middleland.mybluecar.bluetooth;
 /**
  * Defines several constants used between {@link BluetoothChatService} and the UI.
  */
-public interface Constants {
+public interface BtConstants {
 
     // Message types sent from the BluetoothChatService Handler
      static final int MESSAGE_STATE_CHANGE = 1;

@@ -30,4 +30,15 @@ public class BluetoothChat {
 
     }
 
+    public String getBtCommand(int command ){
+        StringBuffer sb = new StringBuffer();
+        sb.append(BT_COMMAND_ID);
+        sb.append(BT_PARAMETER_SEPARATOR);
+        sb.append(command);
+
+
+        return sb.toString();
+
+    }
+
 }
